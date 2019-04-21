@@ -30,7 +30,7 @@
 
         <ImageButton
             android:id="@+id/imageButton5"
-            android:layout_width="wrap_content"
+            android:layout_width="50dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="onTrackerAdd"
@@ -38,7 +38,7 @@
 
         <ImageButton
             android:id="@+id/imageButton6"
-            android:layout_width="wrap_content"
+            android:layout_width="50dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="onTrackerRemove"
@@ -68,7 +68,7 @@
 
         <ImageButton
             android:id="@+id/imageButton3"
-            android:layout_width="wrap_content"
+            android:layout_width="50dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="onBuildingAdd"
@@ -76,7 +76,7 @@
 
         <ImageButton
             android:id="@+id/imageButton4"
-            android:layout_width="wrap_content"
+            android:layout_width="50dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="onBuildingRemove"
@@ -106,7 +106,7 @@
 
         <ImageButton
             android:id="@+id/imageButton"
-            android:layout_width="wrap_content"
+            android:layout_width="50dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="onRoomAdd"
@@ -114,7 +114,7 @@
 
         <ImageButton
             android:id="@+id/imageButton2"
-            android:layout_width="wrap_content"
+            android:layout_width="50dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="onRoomRemove"
@@ -250,6 +250,50 @@
                 android:layout_weight="1"
                 android:text="Scan corner" />
         </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/ll_tracker">
+
+        <CheckedTextView
+            android:id="@+id/ctv_peripherical"
+            android:layout_width="250dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="..." />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Scanning..."
+                android:textSize="10dp" />
+
+            <ImageButton
+                android:id="@+id/imageButton11"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="onStartScanning"
+                app:srcCompat="@android:drawable/ic_popup_sync" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/imageButton12"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:onClick="onAddNewTracker"
+            app:srcCompat="@android:drawable/ic_input_add" />
     </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>
