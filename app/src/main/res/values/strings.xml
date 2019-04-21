@@ -2,10 +2,10 @@
     <string name="app_name">watcher3</string>
 
     <string-array name="rooms_arrays">
-        <item>John's Bedroom</item>
-        <item>Jane's Bedroom</item>
+        <item>John\'s Bedroom</item>
+        <item>Jane\'s Bedroom</item>
         <item>Suite</item>
-        <item>Suite's bathroom</item>
+        <item>Suite\'s bathroom</item>
         <item>Hallway bathroom</item>
         <item>Kitchen</item>
         <item>Laundry</item>
@@ -13,7 +13,7 @@
     </string-array>
 
     <string-array name="building_arrays">
-        <item>Smith's Home</item>
+        <item>Smith\'s Home</item>
         <item>Nursing Home</item>
         <item>Holy Hospital</item>
         <item>Hotel Boulevard</item>

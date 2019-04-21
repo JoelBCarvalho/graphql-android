@@ -22,7 +22,7 @@
             android:text="Tracker" />
 
         <Spinner
-            android:id="@+id/spinner3"
+            android:id="@+id/spinner_trackers"
             android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -33,6 +33,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:onClick="onTrackerAdd"
             app:srcCompat="@android:drawable/ic_input_add" />
 
         <ImageButton
@@ -40,6 +41,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:onClick="onTrackerRemove"
             app:srcCompat="@android:drawable/ic_delete" />
     </LinearLayout>
 
@@ -58,7 +60,7 @@
             android:text="Building" />
 
         <Spinner
-            android:id="@+id/spinner2"
+            android:id="@+id/spinner_buildings"
             android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -69,6 +71,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:onClick="onBuildingAdd"
             app:srcCompat="@android:drawable/ic_input_add" />
 
         <ImageButton
@@ -76,6 +79,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:onClick="onBuildingRemove"
             app:srcCompat="@android:drawable/ic_delete" />
     </LinearLayout>
 
@@ -105,6 +109,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:onClick="onRoomAdd"
             app:srcCompat="@android:drawable/ic_input_add" />
 
         <ImageButton
@@ -112,6 +117,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:onClick="onRoomRemove"
             app:srcCompat="@android:drawable/ic_delete" />
     </LinearLayout>
 
