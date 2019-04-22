@@ -22,10 +22,14 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.apollographql.apollo.ApolloClient;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import okhttp3.OkHttpClient;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,6 +44,10 @@ public class MainActivity extends AppCompatActivity {
     Tracker nearestTracker = null;
     Map<String, Tracker> scannedTrackers = new HashMap<>();
 
+
+    private static final String BASE_URL = "http://192.168.1.220:4000/graphql";
+    private ApolloClient apolloClient;
+
     private Spinner spinner_trackers, spinner_buildings, spinner_rooms;
     private List<String> list_trackers = new ArrayList<>();
     private ArrayAdapter<String> dataAdapter_trackers = null;
@@ -51,7 +59,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .build();
+
         setContentView(R.layout.activity_main);
+
+        apolloClient = ApolloClient.builder()
+                .serverUrl(BASE_URL)
+                .okHttpClient(okHttpClient)
+                .build();
 
         peripheralTextView = findViewById(R.id.ctv_peripherical);
 

@@ -1,0 +1,8 @@
+query TrackersQuery {
+    trackers {
+        _id,
+        name,
+        mac,
+        created
+    }
+}
