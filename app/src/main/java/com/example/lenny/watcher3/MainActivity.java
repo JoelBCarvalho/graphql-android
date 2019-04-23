@@ -13,18 +13,36 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.apollographql.apollo.ApolloCall;
 import com.apollographql.apollo.ApolloClient;
+import com.apollographql.apollo.api.Response;
+import com.apollographql.apollo.exception.ApolloException;
+import com.apollographql.apollo.response.CustomTypeAdapter;
+import com.apollographql.apollo.response.CustomTypeValue;
+import com.apollographql.apollo.sample.CreateTrackerMutation;
+import com.apollographql.apollo.sample.RoutersQuery;
+import com.apollographql.apollo.sample.TrackersQuery;
+import com.apollographql.apollo.sample.type.CreateTrackerInput;
+import com.apollographql.apollo.sample.type.CustomType;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
     private ApolloClient apolloClient;
 
     private Spinner spinner_trackers, spinner_buildings, spinner_rooms;
-    private List<String> list_trackers = new ArrayList<>();
     private ArrayAdapter<String> dataAdapter_trackers = null;
     private List<String> list_buildings = new ArrayList<>();
     private List<String> list_rooms = new ArrayList<>();
@@ -64,11 +81,6 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        apolloClient = ApolloClient.builder()
-                .serverUrl(BASE_URL)
-                .okHttpClient(okHttpClient)
-                .build();
-
         peripheralTextView = findViewById(R.id.ctv_peripherical);
 
         statusTextView = findViewById(R.id.tv_status);
@@ -76,19 +88,90 @@ public class MainActivity extends AppCompatActivity {
 
         setupBluetooth();
 
-        getTrackers();
+
+        final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'");
+        CustomTypeAdapter dateCustomTypeAdapter = new CustomTypeAdapter<Date>() {
+            @Override public Date decode(CustomTypeValue value) {
+                try {
+                    return DATE_FORMAT.parse(value.value.toString());
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            @Override public CustomTypeValue encode(Date value) {
+                return new CustomTypeValue.GraphQLString(DATE_FORMAT.format(value));
+            }
+        };
+
+        apolloClient = ApolloClient.builder()
+                .serverUrl(BASE_URL)
+                .okHttpClient(okHttpClient)
+                .addCustomTypeAdapter(CustomType.DATE, dateCustomTypeAdapter)
+                .build();
+
+        setupTrackerSpinner();
     }
 
-    private void getTrackers() {
+    private void setupTrackerSpinner() {
         spinner_trackers = findViewById(R.id.spinner_trackers);
-        list_trackers = new ArrayList<>();
-        list_trackers.add("list 1");
-        list_trackers.add("list 2");
-        list_trackers.add("list 3");
         dataAdapter_trackers = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, list_trackers);
+                android.R.layout.simple_spinner_item, new ArrayList<String>());
         dataAdapter_trackers.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner_trackers.setAdapter(dataAdapter_trackers);
+
+        populateTrackers();
+    }
+
+    private void populateTrackers() {
+        RoutersQuery routersQuery = RoutersQuery.builder().build();
+        apolloClient.query(routersQuery)
+                .enqueue(new ApolloCall.Callback<RoutersQuery.Data>() {
+                    @Override
+                    public void onResponse(@NotNull Response<RoutersQuery.Data> response) {
+
+                        for (RoutersQuery.Router router : response.data().routers()) {
+                            Log.i("graphql", router._id());
+                            Log.i("graphql", router.activation_link());
+                            if(router.name() != null) {
+                                Log.i("graphql", router.name());
+                            }
+                            Log.i("graphql", router.bt_active().toString());
+                            Log.i("graphql", router.connected().toString());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NotNull ApolloException e) {
+                        Log.e("fail", e.getStackTrace().toString());
+                    }
+                });
+
+        TrackersQuery trackersQuery = TrackersQuery.builder().build();
+        apolloClient.query(trackersQuery)
+                .enqueue(new ApolloCall.Callback<TrackersQuery.Data>() {
+                    @Override
+                    public void onResponse(@NotNull final Response<TrackersQuery.Data> response) {
+
+                        for (final TrackersQuery.Tracker tracker : response.data().trackers()) {
+                            Log.i("graphql", tracker._id());
+                            Log.i("graphql", tracker.name());
+                            Log.i("graphql", tracker.mac());
+
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    dataAdapter_trackers.add(tracker.name());
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NotNull ApolloException e) {
+                        Log.e("fail", e.getStackTrace().toString());
+                    }
+                });
     }
 
     private void setupBluetooth() {
@@ -118,9 +201,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void onTrackerAdd(View view) {
-
-
+    public void onTrackerListRefresh(View view) {
+        populateTrackers();
     }
 
     public void onTrackerRemove(View view) {
@@ -139,7 +221,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onAddNewTracker(View view) {
-        Dialog dialog = onCreateDialogSingleChoice(nearestTracker);
+        stopScanning();
+        Dialog dialog = onCreateDialogTrackerName(nearestTracker);
         dialog.show();
     }
 
@@ -204,19 +287,19 @@ public class MainActivity extends AppCompatActivity {
     private ScanCallback leScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
-            String name = result.getDevice().getName();
+            String deviceName = result.getDevice().getName();
             String address = result.getDevice().getAddress();
             Integer value = Math.abs(result.getRssi());
 
-            Tracker scanned = new Tracker(name, address, value);
-            if(name != null && address != null && value != null) {
+            Tracker scanned = new Tracker(deviceName, address, value);
+            if(deviceName != null && address != null && value != null) {
                 scannedTrackers.put(address, scanned);
             }
 
-            nearestTracker = new Tracker(scanned.getName(), scanned.getAddress(), scanned.getValue());
+            nearestTracker = new Tracker(scanned.getDeviceName(), scanned.getAddress(), scanned.getValue());
             for (Tracker scannedList : scannedTrackers.values()) {
                 if (nearestTracker.getValue() > scannedList.getValue()) {
-                    nearestTracker = new Tracker(scannedList.getName(), scannedList.getAddress(), scannedList.getValue());
+                    nearestTracker = new Tracker(scannedList.getDeviceName(), scannedList.getAddress(), scannedList.getValue());
                 }
             }
 
@@ -225,25 +308,24 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    public Dialog onCreateDialogSingleChoice(Tracker tracker) {
+    public Dialog onCreateDialogTrackerName(final Tracker tracker) {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Who will use " + tracker.getName() + " ?");
+        builder.setTitle("Who will use " + tracker.getDeviceName() + " ?");
 
-// Set up the input
         final EditText input = new EditText(this);
-// Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
         input.setInputType(InputType.TYPE_CLASS_TEXT);
-
 
         builder.setView(input);
 
-// Set up the buttons
         builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                m_Text = input.getText().toString();
-                dataAdapter_trackers.add(m_Text);
+                String trackerName = input.getText().toString();
+                if(!trackerName.isEmpty()) {
+                    apolloClient.mutate(createTrackerMutation(trackerName, tracker))
+                            .enqueue(createPostMutationCallback);
+                }
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -255,5 +337,38 @@ public class MainActivity extends AppCompatActivity {
 
         return builder.create();
     }
+
+    @NonNull
+    private CreateTrackerMutation createTrackerMutation(String trackerName, Tracker tracker) {
+        CreateTrackerInput input = CreateTrackerInput.builder()
+                .name(trackerName)
+                .mac(tracker.getAddress())
+                .build();
+        return CreateTrackerMutation
+                .builder()
+                .input(input)
+                .build();
+    }
+
+    final ApolloCall.Callback<CreateTrackerMutation.Data> createPostMutationCallback = new ApolloCall.Callback<CreateTrackerMutation.Data>() {
+        @Override
+        public void onResponse(@NotNull final Response<CreateTrackerMutation.Data> response) {
+            if(response.data() == null) {
+                Log.i("graphql", "Not saved probably duplicate mac");
+            } else {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        dataAdapter_trackers.add(response.data().createTracker().name());
+                    }
+                });
+            }
+        }
+
+        @Override
+        public void onFailure(@NotNull ApolloException e) {
+            Log.e("fail", e.getStackTrace().toString());
+        }
+    };
 
 }

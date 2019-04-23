@@ -2,11 +2,12 @@ package com.example.lenny.watcher3;
 
 class Tracker  implements Comparable<Tracker> {
     String name;
+    String deviceName;
     String address;
     Integer value;
 
-    public Tracker(String name, String address, Integer value) {
-        this.name = name;
+    public Tracker(String deviceName, String address, Integer value) {
+        this.deviceName = deviceName;
         this.address = address;
         this.value = value;
     }
@@ -17,6 +18,14 @@ class Tracker  implements Comparable<Tracker> {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDeviceName() {
+        return deviceName;
+    }
+
+    public void setDeviceName(String deviceName) {
+        this.deviceName = deviceName;
     }
 
     public String getAddress() {
@@ -39,6 +48,7 @@ class Tracker  implements Comparable<Tracker> {
     public String toString() {
         return "Tracker{" +
                 "name='" + name + '\'' +
+                ", deviceName='" + deviceName + '\'' +
                 ", address='" + address + '\'' +
                 ", value=" + value +
                 '}';

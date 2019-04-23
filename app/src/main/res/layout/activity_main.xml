@@ -33,8 +33,8 @@
             android:layout_width="50dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:onClick="onTrackerAdd"
-            app:srcCompat="@android:drawable/ic_input_add" />
+            android:onClick="onTrackerListRefresh"
+            app:srcCompat="@android:drawable/ic_popup_sync" />
 
         <ImageButton
             android:id="@+id/imageButton6"

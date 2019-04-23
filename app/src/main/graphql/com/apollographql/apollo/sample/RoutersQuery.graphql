@@ -1,0 +1,11 @@
+query RoutersQuery {
+    routers {
+        _id,
+        activation_link,
+        name,
+        bt_active,
+        connected,
+        registered,
+        created
+    }
+}

@@ -1,0 +1,7 @@
+mutation CreateTracker($input: CreateTrackerInput!) {
+
+    createTracker(tracker: $input) {
+        _id,
+        name
+    }
+}
