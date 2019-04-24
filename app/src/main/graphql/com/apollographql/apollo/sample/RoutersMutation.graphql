@@ -1,0 +1,7 @@
+mutation CreateRouter($input: CreateRouterInput!) {
+
+    createRouter(router: $input) {
+        _id,
+        name
+    }
+}

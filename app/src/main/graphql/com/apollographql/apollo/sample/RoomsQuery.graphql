@@ -1,0 +1,6 @@
+query RoomsQuery {
+    rooms {
+        _id,
+        name
+    }
+}

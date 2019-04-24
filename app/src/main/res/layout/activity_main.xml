@@ -67,6 +67,14 @@
             android:entries="@array/building_arrays" />
 
         <ImageButton
+            android:id="@+id/imageButton7"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onBuildingRefresh"
+            app:srcCompat="@android:drawable/ic_popup_sync" />
+
+        <ImageButton
             android:id="@+id/imageButton3"
             android:layout_width="50dp"
             android:layout_height="wrap_content"
@@ -103,6 +111,14 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:entries="@array/rooms_arrays" />
+
+        <ImageButton
+            android:id="@+id/imageButton8"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onRoomRefresh"
+            app:srcCompat="@android:drawable/ic_popup_sync" />
 
         <ImageButton
             android:id="@+id/imageButton"
