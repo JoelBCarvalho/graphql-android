@@ -91,7 +91,14 @@ public class MainActivity extends AppCompatActivity {
 
         setupBluetooth();
 
+        setupApolloClient(okHttpClient);
 
+        setupBuildingsSpinner();
+        setupTrackersSpinner();
+        setupRoomsSpinner();
+    }
+
+    private void setupApolloClient(OkHttpClient okHttpClient) {
         final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'");
         CustomTypeAdapter dateCustomTypeAdapter = new CustomTypeAdapter<Date>() {
             @Override public Date decode(CustomTypeValue value) {
@@ -112,128 +119,6 @@ public class MainActivity extends AppCompatActivity {
                 .okHttpClient(okHttpClient)
                 .addCustomTypeAdapter(CustomType.DATE, dateCustomTypeAdapter)
                 .build();
-
-        setupTrackersSpinner();
-        setupBuildingsSpinner();
-        setupRoomsSpinner();
-    }
-
-    private void setupTrackersSpinner() {
-        spinner_trackers = findViewById(R.id.spinner_trackers);
-        dataAdapter_trackers = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, new ArrayList<String>());
-        dataAdapter_trackers.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner_trackers.setAdapter(dataAdapter_trackers);
-
-        populateTrackers();
-    }
-
-    private void setupBuildingsSpinner() {
-        spinner_buildings = findViewById(R.id.spinner_buildings);
-        dataAdapter_buildings = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, new ArrayList<String>());
-        dataAdapter_buildings.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner_buildings.setAdapter(dataAdapter_buildings);
-
-        populateBuildings();
-    }
-
-    private void setupRoomsSpinner() {
-        spinner_rooms = findViewById(R.id.spinner_rooms);
-        dataAdapter_rooms = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, new ArrayList<String>());
-        dataAdapter_rooms.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner_rooms.setAdapter(dataAdapter_rooms);
-
-        populateRooms();
-    }
-
-    private void populateRooms() {
-        dataAdapter_rooms.clear();
-        RoomsQuery roomsQuery = RoomsQuery.builder().build();
-        apolloClient.query(roomsQuery)
-                .enqueue(new ApolloCall.Callback<RoomsQuery.Data>() {
-                    @Override
-                    public void onResponse(@NotNull Response<RoomsQuery.Data> response) {
-
-                        for (final RoomsQuery.Room room : response.data().rooms()) {
-                            Log.i("graphql", room._id());
-                            Log.i("graphql", room.name());
-
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    dataAdapter_rooms.add(room.name());
-                                }
-                            });
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(@NotNull ApolloException e) {
-                        Log.e("fail", e.getStackTrace().toString());
-                    }
-                });
-    }
-
-    private void populateBuildings() {
-        dataAdapter_buildings.clear();
-        RoutersQuery routersQuery = RoutersQuery.builder().build();
-        apolloClient.query(routersQuery)
-                .enqueue(new ApolloCall.Callback<RoutersQuery.Data>() {
-                    @Override
-                    public void onResponse(@NotNull Response<RoutersQuery.Data> response) {
-
-                        for (final RoutersQuery.Router router : response.data().routers()) {
-                            Log.i("graphql", router._id());
-                            Log.i("graphql", router.activation_link());
-                            if(router.name() != null) {
-                                Log.i("graphql", router.name());
-                            }
-
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    dataAdapter_buildings.add(router.name());
-                                }
-                            });
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(@NotNull ApolloException e) {
-                        Log.e("fail", e.getStackTrace().toString());
-                    }
-                });
-    }
-
-    private void populateTrackers() {
-        dataAdapter_trackers.clear();
-        TrackersQuery trackersQuery = TrackersQuery.builder().build();
-        apolloClient.query(trackersQuery)
-                .enqueue(new ApolloCall.Callback<TrackersQuery.Data>() {
-                    @Override
-                    public void onResponse(@NotNull final Response<TrackersQuery.Data> response) {
-
-                        for (final TrackersQuery.Tracker tracker : response.data().trackers()) {
-                            Log.i("graphql", tracker._id());
-                            Log.i("graphql", tracker.name());
-                            Log.i("graphql", tracker.mac());
-
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    dataAdapter_trackers.add(tracker.name());
-                                }
-                            });
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(@NotNull ApolloException e) {
-                        Log.e("fail", e.getStackTrace().toString());
-                    }
-                });
     }
 
     private void setupBluetooth() {
@@ -383,6 +268,45 @@ public class MainActivity extends AppCompatActivity {
     };
 
     ///////////START TRACKER MUTATAION
+    private void setupTrackersSpinner() {
+        spinner_trackers = findViewById(R.id.spinner_trackers);
+        dataAdapter_trackers = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, new ArrayList<String>());
+        dataAdapter_trackers.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner_trackers.setAdapter(dataAdapter_trackers);
+
+        populateTrackers();
+    }
+
+    private void populateTrackers() {
+        dataAdapter_trackers.clear();
+        TrackersQuery trackersQuery = TrackersQuery.builder().build();
+        apolloClient.query(trackersQuery)
+                .enqueue(new ApolloCall.Callback<TrackersQuery.Data>() {
+                    @Override
+                    public void onResponse(@NotNull final Response<TrackersQuery.Data> response) {
+
+                        for (final TrackersQuery.Tracker tracker : response.data().trackers()) {
+                            Log.i("graphql", tracker._id());
+                            Log.i("graphql", tracker.name());
+                            Log.i("graphql", tracker.mac());
+
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    dataAdapter_trackers.add(tracker.name());
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NotNull ApolloException e) {
+                        Log.e("fail", e.getStackTrace().toString());
+                    }
+                });
+    }
+
     public Dialog onCreateDialogTrackerName(final Tracker tracker) {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -448,6 +372,47 @@ public class MainActivity extends AppCompatActivity {
     ///////////END TRACKER MUTATAION
 
     ///////////START BUIlDING MUTATAION
+    private void setupBuildingsSpinner() {
+        spinner_buildings = findViewById(R.id.spinner_buildings);
+        dataAdapter_buildings = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, new ArrayList<String>());
+        dataAdapter_buildings.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner_buildings.setAdapter(dataAdapter_buildings);
+
+        populateBuildings();
+    }
+
+    private void populateBuildings() {
+        dataAdapter_buildings.clear();
+        RoutersQuery routersQuery = RoutersQuery.builder().build();
+        apolloClient.query(routersQuery)
+                .enqueue(new ApolloCall.Callback<RoutersQuery.Data>() {
+                    @Override
+                    public void onResponse(@NotNull Response<RoutersQuery.Data> response) {
+
+                        for (final RoutersQuery.Router router : response.data().routers()) {
+                            Log.i("graphql", router._id());
+                            Log.i("graphql", router.activation_link());
+                            if(router.name() != null) {
+                                Log.i("graphql", router.name());
+                            }
+
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    dataAdapter_buildings.add(router.name());
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NotNull ApolloException e) {
+                        Log.e("fail", e.getStackTrace().toString());
+                    }
+                });
+    }
+
     public Dialog onCreateDialogBuildingName() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -520,6 +485,44 @@ public class MainActivity extends AppCompatActivity {
     ///////////END BUILDING MUTATAION
 
     ///////////START ROOM MUTATAION
+    private void setupRoomsSpinner() {
+        spinner_rooms = findViewById(R.id.spinner_rooms);
+        dataAdapter_rooms = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, new ArrayList<String>());
+        dataAdapter_rooms.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner_rooms.setAdapter(dataAdapter_rooms);
+
+        populateRooms();
+    }
+
+    private void populateRooms() {
+        dataAdapter_rooms.clear();
+        RoomsQuery roomsQuery = RoomsQuery.builder().build();
+        apolloClient.query(roomsQuery)
+                .enqueue(new ApolloCall.Callback<RoomsQuery.Data>() {
+                    @Override
+                    public void onResponse(@NotNull Response<RoomsQuery.Data> response) {
+
+                        for (final RoomsQuery.Room room : response.data().rooms()) {
+                            Log.i("graphql", room._id());
+                            Log.i("graphql", room.name());
+
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    dataAdapter_rooms.add(room.name());
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NotNull ApolloException e) {
+                        Log.e("fail", e.getStackTrace().toString());
+                    }
+                });
+    }
+
     public Dialog onCreateDialogRoomName() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);

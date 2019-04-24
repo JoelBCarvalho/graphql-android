@@ -7,51 +7,12 @@
     tools:context=".MainActivity">
 
     <LinearLayout
-        android:id="@+id/ll_tracker"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_marginBottom="8dp"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@+id/ll_building">
-
-        <TextView
-            android:id="@+id/textView10"
-            android:layout_width="60dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Tracker" />
-
-        <Spinner
-            android:id="@+id/spinner_trackers"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:entries="@array/trackers_arrays" />
-
-        <ImageButton
-            android:id="@+id/imageButton5"
-            android:layout_width="50dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:onClick="onTrackerListRefresh"
-            app:srcCompat="@android:drawable/ic_popup_sync" />
-
-        <ImageButton
-            android:id="@+id/imageButton6"
-            android:layout_width="50dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:onClick="onTrackerRemove"
-            app:srcCompat="@android:drawable/ic_delete" />
-    </LinearLayout>
-
-    <LinearLayout
         android:id="@+id/ll_building"
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:layout_marginBottom="8dp"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@+id/ll_room">
+        app:layout_constraintBottom_toTopOf="@+id/ll_scan">
 
         <TextView
             android:id="@+id/textView9"
@@ -90,6 +51,92 @@
             android:onClick="onBuildingRemove"
             app:srcCompat="@android:drawable/ic_delete" />
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ll_scan"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/ll_tracker">
+
+        <CheckedTextView
+            android:id="@+id/ctv_peripherical"
+            android:layout_width="250dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="..." />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Scanning..."
+                android:textSize="10dp" />
+
+            <ImageButton
+                android:id="@+id/imageButton11"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="onStartScanning"
+                app:srcCompat="@android:drawable/ic_popup_sync" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/imageButton12"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:onClick="onAddNewTracker"
+            app:srcCompat="@android:drawable/ic_input_add" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ll_tracker"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginBottom="8dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/ll_room">
+
+        <TextView
+            android:id="@+id/textView10"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Tracker" />
+
+        <Spinner
+            android:id="@+id/spinner_trackers"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:entries="@array/trackers_arrays" />
+
+        <ImageButton
+            android:id="@+id/imageButton5"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onTrackerListRefresh"
+            app:srcCompat="@android:drawable/ic_popup_sync" />
+
+        <ImageButton
+            android:id="@+id/imageButton6"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onTrackerRemove"
+            app:srcCompat="@android:drawable/ic_delete" />
+    </LinearLayout>
+
+
 
     <LinearLayout
         android:id="@+id/ll_room"
@@ -268,48 +315,6 @@
         </LinearLayout>
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@+id/ll_tracker">
 
-        <CheckedTextView
-            android:id="@+id/ctv_peripherical"
-            android:layout_width="250dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="..." />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tv_status"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Scanning..."
-                android:textSize="10dp" />
-
-            <ImageButton
-                android:id="@+id/imageButton11"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:onClick="onStartScanning"
-                app:srcCompat="@android:drawable/ic_popup_sync" />
-        </LinearLayout>
-
-        <ImageButton
-            android:id="@+id/imageButton12"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:onClick="onAddNewTracker"
-            app:srcCompat="@android:drawable/ic_input_add" />
-    </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>
