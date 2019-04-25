@@ -1,15 +1,30 @@
 package com.example.lenny.watcher3;
 
 class Tracker  implements Comparable<Tracker> {
+    String id;
     String name;
     String deviceName;
     String address;
     Integer value;
 
+    public Tracker(String id, String name, String address) {
+        this.id = id;
+        this.name = name;
+        this.address = address;
+    }
+
     public Tracker(String deviceName, String address, Integer value) {
         this.deviceName = deviceName;
         this.address = address;
         this.value = value;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {

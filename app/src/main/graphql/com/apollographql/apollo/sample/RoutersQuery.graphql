@@ -4,8 +4,6 @@ query RoutersQuery {
         activation_link,
         name,
         bt_active,
-        connected,
-        registered,
-        created
+        connected
     }
 }

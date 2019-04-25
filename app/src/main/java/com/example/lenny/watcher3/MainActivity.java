@@ -19,6 +19,7 @@ import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -74,6 +75,11 @@ public class MainActivity extends AppCompatActivity {
     private ArrayAdapter<String> dataAdapter_trackers = null;
     private ArrayAdapter<String> dataAdapter_buildings = null;
     private ArrayAdapter<String> dataAdapter_rooms = null;
+
+    private Map<String, Tracker> map_trackers = new HashMap<>();
+    private Map<String, Building> map_buildings = new HashMap<>();
+    private Map<String, Room> map_rooms = new HashMap<>();
+    private String buildingSelected = null;
 
 
     @Override
@@ -149,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onTrackerListRefresh(View view) {
-        populateTrackers();
+        //populateTrackers();
     }
 
     public void onTrackerRemove(View view) {
@@ -182,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onRoomRefresh(View view) {
-        populateRooms();
+        //populateRooms();
     }
 
     @Override
@@ -267,111 +273,8 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    ///////////START TRACKER MUTATAION
-    private void setupTrackersSpinner() {
-        spinner_trackers = findViewById(R.id.spinner_trackers);
-        dataAdapter_trackers = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, new ArrayList<String>());
-        dataAdapter_trackers.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner_trackers.setAdapter(dataAdapter_trackers);
-
-        populateTrackers();
-    }
-
-    private void populateTrackers() {
-        dataAdapter_trackers.clear();
-        TrackersQuery trackersQuery = TrackersQuery.builder().build();
-        apolloClient.query(trackersQuery)
-                .enqueue(new ApolloCall.Callback<TrackersQuery.Data>() {
-                    @Override
-                    public void onResponse(@NotNull final Response<TrackersQuery.Data> response) {
-
-                        for (final TrackersQuery.Tracker tracker : response.data().trackers()) {
-                            Log.i("graphql", tracker._id());
-                            Log.i("graphql", tracker.name());
-                            Log.i("graphql", tracker.mac());
-
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    dataAdapter_trackers.add(tracker.name());
-                                }
-                            });
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(@NotNull ApolloException e) {
-                        Log.e("fail", e.getStackTrace().toString());
-                    }
-                });
-    }
-
-    public Dialog onCreateDialogTrackerName(final Tracker tracker) {
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Who will use " + tracker.getDeviceName() + " ?");
-
-        final EditText input = new EditText(this);
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-
-        builder.setView(input);
-
-        builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                String trackerName = input.getText().toString();
-                if(!trackerName.isEmpty()) {
-                    apolloClient.mutate(createTrackerMutation(trackerName, tracker))
-                            .enqueue(createPostMutationCallback);
-                }
-            }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-
-        return builder.create();
-    }
-
-    @NonNull
-    private CreateTrackerMutation createTrackerMutation(String trackerName, Tracker tracker) {
-        CreateTrackerInput input = CreateTrackerInput.builder()
-                .name(trackerName)
-                .mac(tracker.getAddress())
-                .build();
-        return CreateTrackerMutation
-                .builder()
-                .input(input)
-                .build();
-    }
-
-    final ApolloCall.Callback<CreateTrackerMutation.Data> createPostMutationCallback = new ApolloCall.Callback<CreateTrackerMutation.Data>() {
-        @Override
-        public void onResponse(@NotNull final Response<CreateTrackerMutation.Data> response) {
-            if(response.data() == null) {
-                Log.i("graphql", "Not saved probably duplicate mac");
-            } else {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        dataAdapter_trackers.add(response.data().createTracker().name());
-                    }
-                });
-            }
-        }
-
-        @Override
-        public void onFailure(@NotNull ApolloException e) {
-            Log.e("fail", e.getStackTrace().toString());
-        }
-    };
-    ///////////END TRACKER MUTATAION
-
     ///////////START BUIlDING MUTATAION
+
     private void setupBuildingsSpinner() {
         spinner_buildings = findViewById(R.id.spinner_buildings);
         dataAdapter_buildings = new ArrayAdapter<>(this,
@@ -379,7 +282,30 @@ public class MainActivity extends AppCompatActivity {
         dataAdapter_buildings.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner_buildings.setAdapter(dataAdapter_buildings);
 
+        spinner_buildings.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if(position != 0) {
+                    buildingSelected = parent.getItemAtPosition(position).toString();
+                    populateTrackers(buildingSelected);
+                    populateRooms(buildingSelected);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        buildingSpinnerClearAndDefault();
+
         populateBuildings();
+    }
+
+    private void buildingSpinnerClearAndDefault() {
+        dataAdapter_buildings.clear();
+        dataAdapter_buildings.add("Select building");
     }
 
     private void populateBuildings() {
@@ -390,17 +316,21 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(@NotNull Response<RoutersQuery.Data> response) {
 
+                        map_buildings.clear();
                         for (final RoutersQuery.Router router : response.data().routers()) {
                             Log.i("graphql", router._id());
                             Log.i("graphql", router.activation_link());
-                            if(router.name() != null) {
-                                Log.i("graphql", router.name());
-                            }
+                            Log.i("graphql", router.name());
+                            Building building = new Building(router._id(), router.name(), router.activation_link());
+                            map_buildings.put(building.name, building);
+                        }
 
+                        if(!map_buildings.isEmpty()) {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    dataAdapter_buildings.add(router.name());
+                                    buildingSpinnerClearAndDefault();
+                                    dataAdapter_buildings.addAll(map_buildings.keySet());
                                 }
                             });
                         }
@@ -484,6 +414,129 @@ public class MainActivity extends AppCompatActivity {
     };
     ///////////END BUILDING MUTATAION
 
+    ///////////START TRACKER MUTATAION
+    private void setupTrackersSpinner() {
+        spinner_trackers = findViewById(R.id.spinner_trackers);
+        dataAdapter_trackers = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, new ArrayList<String>());
+        dataAdapter_trackers.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner_trackers.setAdapter(dataAdapter_trackers);
+
+        spinner_trackers.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                parent.getItemAtPosition(position).toString();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        //populateTrackers();
+    }
+
+    private void populateTrackers(String buildingKey) {
+        dataAdapter_trackers.clear();
+        TrackersQuery trackersQuery = TrackersQuery.builder().build();
+        apolloClient.query(trackersQuery)
+                .enqueue(new ApolloCall.Callback<TrackersQuery.Data>() {
+                    @Override
+                    public void onResponse(@NotNull final Response<TrackersQuery.Data> response) {
+
+                        map_trackers.clear();
+                        for (final TrackersQuery.Tracker trackerResp : response.data().trackers()) {
+                            Log.i("graphql", trackerResp._id());
+                            Log.i("graphql", trackerResp.name());
+                            Log.i("graphql", trackerResp.mac());
+                            Tracker tracker = new Tracker(trackerResp._id(), trackerResp.name(), trackerResp.mac());
+                            map_trackers.put(tracker.name, tracker);
+                        }
+
+                        if(!map_trackers.isEmpty()) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    dataAdapter_trackers.clear();
+                                    dataAdapter_trackers.addAll(map_trackers.keySet());
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NotNull ApolloException e) {
+                        Log.e("fail", e.getStackTrace().toString());
+                    }
+                });
+    }
+
+    public Dialog onCreateDialogTrackerName(final Tracker tracker) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Who will use " + tracker.getDeviceName() + " ?");
+
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+
+        builder.setView(input);
+
+        builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String trackerName = input.getText().toString();
+                if(!trackerName.isEmpty()) {
+                    apolloClient.mutate(createTrackerMutation(trackerName, tracker))
+                            .enqueue(createPostMutationCallback);
+                }
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        return builder.create();
+    }
+
+    @NonNull
+    private CreateTrackerMutation createTrackerMutation(String trackerName, Tracker tracker) {
+        CreateTrackerInput input = CreateTrackerInput.builder()
+                .name(trackerName)
+                .mac(tracker.getAddress())
+                .build();
+        return CreateTrackerMutation
+                .builder()
+                .input(input)
+                .build();
+    }
+
+    final ApolloCall.Callback<CreateTrackerMutation.Data> createPostMutationCallback = new ApolloCall.Callback<CreateTrackerMutation.Data>() {
+        @Override
+        public void onResponse(@NotNull final Response<CreateTrackerMutation.Data> response) {
+            if(response.data() == null) {
+                Log.i("graphql", "Not saved probably duplicate mac");
+            } else {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        //dataAdapter_trackers.add(response.data().createTracker().name());
+                        populateTrackers(buildingSelected);
+                    }
+                });
+            }
+        }
+
+        @Override
+        public void onFailure(@NotNull ApolloException e) {
+            Log.e("fail", e.getStackTrace().toString());
+        }
+    };
+    ///////////END TRACKER MUTATAION
+
     ///////////START ROOM MUTATAION
     private void setupRoomsSpinner() {
         spinner_rooms = findViewById(R.id.spinner_rooms);
@@ -492,10 +545,21 @@ public class MainActivity extends AppCompatActivity {
         dataAdapter_rooms.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner_rooms.setAdapter(dataAdapter_rooms);
 
-        populateRooms();
+        spinner_rooms.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                parent.getItemAtPosition(position).toString();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+        //populateRooms();
     }
 
-    private void populateRooms() {
+    private void populateRooms(String key) {
         dataAdapter_rooms.clear();
         RoomsQuery roomsQuery = RoomsQuery.builder().build();
         apolloClient.query(roomsQuery)
@@ -503,14 +567,19 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(@NotNull Response<RoomsQuery.Data> response) {
 
-                        for (final RoomsQuery.Room room : response.data().rooms()) {
-                            Log.i("graphql", room._id());
-                            Log.i("graphql", room.name());
+                        for (final RoomsQuery.Room roomResp : response.data().rooms()) {
+                            Log.i("graphql", roomResp._id());
+                            Log.i("graphql", roomResp.name());
+                            Room room = new Room(roomResp._id(), roomResp.name());
+                            map_rooms.put(room.name, room);
+                        }
 
+                        if(!map_rooms.isEmpty()) {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    dataAdapter_rooms.add(room.name());
+                                    dataAdapter_rooms.clear();
+                                    dataAdapter_rooms.addAll(map_rooms.keySet());
                                 }
                             });
                         }
